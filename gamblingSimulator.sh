@@ -13,8 +13,6 @@ function getDailyResult(){
 	for(( day=1; day<=$DAYS; day++))
 	do
 		stake=100
-		wins=0
-		losses=0
 		DAILY_LOW_LIMIT=$(( $stake / 2 ))
 		DAILY_HIGH_LIMIT=$(($stake / 2 + $stake))
 
@@ -23,22 +21,22 @@ function getDailyResult(){
 			result=$(( RANDOM % 2))
 			case $result in
 				1)
-					((stake++))
-					((wins++));;
+					((stake++));;
 
 				0)
-					((stake--))
-					((losses++));;
+					((stake--));;
 			esac
 		done
 		outCome=$(( $stake - 100 ))
-		gameRecord["Day_$day"]=$wins" "$losses
+		gameRecord["Day_$day"]=$outCome
 	done
 }
 
 getDailyResult
 
-for i in ${!gameRecord[@]}
+for((j=1;j<=20;j++))
 do
-	echo "$i ${gameRecord[$i]}"
-done | sort -k2 -n
+	echo "Day_$j ${gameRecord[Day_$j]}"
+done 
+
+echo "Total profit" $( printf "%s\n" ${gameRecord[@]} | awk '{sum+=$0}END{print sum}')
