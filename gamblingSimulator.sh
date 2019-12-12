@@ -4,26 +4,28 @@ echo "Welcome to the GAMBLING SIMULATOR"
 #constant
 BET=1
 DAYS=20
+WIN=1
+LOSS=0
+STAKE=100
+DAILY_LOW_LIMIT=$(( $STAKE / 2 ))
+DAILY_HIGH_LIMIT=$(($STAKE / 2 + $STAKE))
 
 declare -A gameRecord
 
-stake=100
 function setDailyResult(){
 
 	for(( day=1; day<=$DAYS; day++))
 	do
-		stake=100
-		DAILY_LOW_LIMIT=$(( $stake / 2 ))
-		DAILY_HIGH_LIMIT=$(($stake / 2 + $stake))
+		local stake=$STAKE
 
 		while [ $DAILY_LOW_LIMIT -lt $stake ] && [ $DAILY_HIGH_LIMIT -gt $stake ]
 		do
 			result=$(( RANDOM % 2))
 			case $result in
-				1)
+				$WIN)
 					((stake++));;
 
-				0)
+				$LOSS)
 					((stake--));;
 			esac
 		done
@@ -38,21 +40,37 @@ function getDailyProfit(){
 		echo "Day_$j ${gameRecord[Day_$j]}"
 	done 
 }
+
 function getLuckyUnlucky(){
 	gameRecord[Day_0]=0
+
 	for((j=1;j<=20;j++))
-   do
+	do
 		k=$(( $j - 1 ))
-      gameRecord[Day_$j]=$(( ${gameRecord[Day_$j]} + ${gameRecord[Day_$k]} ))
+		gameRecord[Day_$j]=$(( ${gameRecord[Day_$j]} + ${gameRecord[Day_$k]} ))
 		echo  "Day$j	"${gameRecord[Day_$j]}
-   done | sort -k2 -nr |awk 'NR==20{print "Unluckiest: " $0}AND NR==1{print "Luckiest: " $0}'
+	done | sort -k2 -nr |awk 'NR==20{print "Unluckiest:	" $0}AND NR==1{print "Luckiest:	" $0}'
 
 }
 
 function main(){
 	setDailyResult 
 	getDailyProfit
+	profit=$( printf "%s\n" ${gameRecord[@]} | awk '{sum+=$0}END{print sum}')
+	echo "Profit " $profit
 	getLuckyUnlucky
-	echo "Total profit" $( printf "%s\n" ${gameRecord[@]} | awk '{sum+=$0}END{print sum}')
+	playNextMonthOrNot $profit
 }
+
+function playNextMonthOrNot(){
+	profit=$1
+
+   if [ $profit -gt 0 ]
+	then
+		main 
+	else
+		echo "Thanks for playing..Better luck next time"
+   fi
+}
+
 main
