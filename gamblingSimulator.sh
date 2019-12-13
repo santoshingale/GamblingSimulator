@@ -16,7 +16,7 @@ function setDailyResult(){
 
 	for(( day=1; day<=$DAYS; day++))
 	do
-		local stake=$STAKE
+		stake=$STAKE
 
 		while [ $DAILY_LOW_LIMIT -lt $stake ] && [ $DAILY_HIGH_LIMIT -gt $stake ]
 		do
@@ -24,33 +24,40 @@ function setDailyResult(){
 
 			case $result in
 				$WIN)
-					((stake++));;
+					stake=$(($stake + $BET));;
 
 				$LOSS)
-					((stake--));;
+					stake=$(($stake - $BET));;
 			esac
 
 		done
-		outCome=$(( $stake - 100 ))
-		gameRecord["Day_$day"]=$outCome
+
+		gameRecord["Day_$day"]=$(( $stake - $STAKE ))
+
 	done
 }
 
 function getDailyProfit(){
-	for((j=1;j<=20;j++))
+	for((j=1;j<=$DAYS;j++))
 	do
 		echo "Day_$j ${gameRecord[Day_$j]}"
 	done 
 }
 
 function getLuckyUnlucky(){
-	gameRecord[Day_0]=0
 
-	for((j=1;j<=20;j++))
+	for((j=1;j<=$DAYS;j++))
 	do
-		k=$(( $j - 1 ))
-		gameRecord[Day_$j]=$(( ${gameRecord[Day_$j]} + ${gameRecord[Day_$k]} ))
-		echo  "Day$j	"${gameRecord[Day_$j]}
+		previousDay=$(( $j - 1 ))
+
+		if [ $j -eq 1 ]
+		then
+			echo  "Day$j   "${gameRecord[Day_$j]}
+		else
+			gameRecord[Day_$j]=$(( ${gameRecord[Day_$previousDay]} + ${gameRecord[Day_$j]} ))
+			echo  "Day$j	"${gameRecord[Day_$j]}
+		fi
+
 	done | sort -k2 -nr |awk 'NR==20{print "Unluckiest:	" $0}AND NR==1{print "Luckiest:	" $0}'
 }
 
@@ -71,7 +78,7 @@ function playNextMonthOrNot(){
 		main 
 	else
 		echo "Thanks for playing..Better luck next time"
-   fi
+	fi
 }
 
 main
